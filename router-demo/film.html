@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Router demo</title>
+<link rel="icon" href="data:,">
+<style>
+@font-face { font-family: "InterF"; src: url(assets/fonts/Inter-Regular.otf); font-weight: 400; }
+@font-face { font-family: "InterF"; src: url(assets/fonts/Inter-Medium.otf); font-weight: 500; }
+@font-face { font-family: "InterF"; src: url(assets/fonts/Inter-SemiBold.otf); font-weight: 600; }
+@font-face { font-family: "InterF"; src: url(assets/fonts/Inter-Bold.otf); font-weight: 700; }
+@font-face { font-family: "InterF"; src: url(assets/fonts/Inter-ExtraBold.otf); font-weight: 800; }
+:root {
+  --bg: #f6f5f1; --ink: #15171b; --muted: #6a6f77; --line: #dedcd5; --card: #ffffff;
+  --soft: #efeee9; --hi: #fff1b8; --hiInk: #7a5a00;
+}
+html, body { margin: 0; background: #d9d8d2; }
+#stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: var(--bg);
+  font-family: "InterF", sans-serif; color: var(--ink); font-feature-settings: "tnum" 1, "cv11" 1; }
+.abs { position: absolute; }
+.card { background: var(--card); border: 2px solid var(--line); border-radius: 26px; box-sizing: border-box;
+  box-shadow: 0 2px 0 rgba(20,20,20,.03), 0 10px 30px rgba(20,20,20,.05); }
+#title { left: 0; width: 1080px; top: 92px; text-align: center; font-size: 60px; font-weight: 800; letter-spacing: -1.2px; }
+.ctr { top: 214px; width: 237px; height: 196px; z-index: 5; }
+.ctr .lbl { position: absolute; left: 0; right: 0; top: 26px; text-align: center; font-size: 30px; font-weight: 600; color: var(--muted); }
+.ctr .num { position: absolute; left: 0; right: 0; top: 70px; text-align: center; font-size: 92px; font-weight: 800; letter-spacing: -2px; line-height: 1; }
+.ctr .plus { position: absolute; right: 18px; top: -26px; font-size: 40px; font-weight: 800; padding: 6px 16px; border-radius: 30px; color: #fff; }
+.node { height: 132px; z-index: 4; }
+.node .nm { position: absolute; left: 0; right: 0; top: 26px; text-align: center; font-size: 38px; font-weight: 700; letter-spacing: -.5px; }
+.node .ct { position: absolute; left: 0; right: 0; top: 80px; text-align: center; font-size: 25px; font-weight: 500; color: var(--muted); }
+.node .bar { position: absolute; left: 0; top: 0; bottom: 0; width: 12px; border-radius: 26px 0 0 26px; }
+.bot .bar { left: auto; right: 0; border-radius: 0 26px 26px 0; }
+#router { z-index: 4; }
+#router .nm { position: absolute; left: 0; right: 0; top: 150px; text-align: center; font-size: 38px; font-weight: 800; letter-spacing: -.6px; }
+#router .sb { position: absolute; left: 0; right: 0; top: 204px; text-align: center; font-size: 27px; font-weight: 500; color: var(--muted); }
+#router .ring { position: absolute; inset: -2px; border-radius: 30px; border: 5px solid #15171b; opacity: 0; }
+#skipBadge { z-index: 8; font-size: 34px; font-weight: 800; color: #fff; background: #6d7178; padding: 10px 24px; border-radius: 40px; white-space: nowrap; }
+.tag { z-index: 9; font-size: 31px; font-weight: 700; padding: 12px 22px; border-radius: 22px; background: #fff; white-space: nowrap;
+  border: 3px solid; box-shadow: 0 8px 24px rgba(0,0,0,.10); }
+svg { position: absolute; left: 0; top: 0; }
+#wires { z-index: 2; } #dots { z-index: 6; }
+.cap { left: 40px; width: 1000px; top: 1262px; text-align: center; z-index: 7; }
+.cap .l1 { font-size: 42px; font-weight: 800; letter-spacing: -.6px; }
+.cap .l2 { font-size: 33px; font-weight: 500; color: var(--muted); margin-top: 10px; }
+#log { left: 40px; top: 1420px; width: 1000px; height: 420px; z-index: 5; overflow: hidden; }
+#log .hd { position: absolute; left: 34px; top: 26px; font-size: 32px; font-weight: 800; }
+#log .hd2 { position: absolute; right: 34px; top: 30px; font-size: 26px; font-weight: 500; color: var(--muted); }
+#log .win { position: absolute; left: 0; right: 0; top: 86px; bottom: 0; overflow: hidden; }
+.ln { position: absolute; left: 18px; right: 18px; height: 70px; border-radius: 16px; display: flex; align-items: center;
+  font-size: 30px; font-weight: 500; white-space: nowrap; overflow: hidden; }
+.ln .dt { width: 18px; height: 18px; border-radius: 50%; margin: 0 18px 0 18px; flex: none; }
+.ln b { font-weight: 800; margin-right: 12px; }
+.ln span.lb { color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
+/* tổng kết */
+#sum { left: 0; top: 0; width: 1080px; height: 1920px; z-index: 20; }
+#sum .h { position: absolute; left: 0; right: 0; top: 150px; text-align: center; font-size: 76px; font-weight: 800; letter-spacing: -1.6px; }
+#sum .badge { position: absolute; left: 50%; top: 262px; transform: translateX(-50%); font-size: 32px; font-weight: 700; color: #9a4a00;
+  background: #ffe7cc; border: 2px solid #f3b77a; padding: 10px 26px; border-radius: 40px; white-space: nowrap; }
+#sum .big { position: absolute; left: 0; right: 0; top: 380px; text-align: center; font-size: 150px; font-weight: 800; letter-spacing: -4px; line-height: 1; }
+#sum .bigl { position: absolute; left: 0; right: 0; top: 540px; text-align: center; font-size: 38px; font-weight: 600; color: var(--muted); }
+#sum .stack { position: absolute; left: 60px; width: 960px; top: 620px; height: 46px; border-radius: 23px; background: var(--soft); overflow: hidden; }
+#sum .stack div { position: absolute; top: 0; bottom: 0; }
+.sc { top: 712px; width: 300px; height: 230px; }
+.sc .n { position: absolute; left: 0; right: 0; top: 30px; text-align: center; font-size: 96px; font-weight: 800; letter-spacing: -2px; line-height: 1; }
+.sc .t { position: absolute; left: 0; right: 0; top: 138px; text-align: center; font-size: 32px; font-weight: 700; }
+.sc .s { position: absolute; left: 0; right: 0; top: 182px; text-align: center; font-size: 24px; font-weight: 500; color: var(--muted); }
+#sum .ch { position: absolute; left: 60px; top: 1040px; font-size: 44px; font-weight: 800; letter-spacing: -.6px; }
+.cr { left: 60px; width: 960px; height: 170px; }
+.cr .l { position: absolute; left: 0; top: 0; font-size: 36px; font-weight: 600; }
+.cr .v { position: absolute; right: 0; top: 0; font-size: 36px; font-weight: 800; }
+.cr .track { position: absolute; left: 0; right: 0; top: 64px; height: 56px; border-radius: 16px; background: var(--soft); overflow: hidden; }
+.cr .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 16px; }
+#sum .ft { position: absolute; left: 0; right: 0; top: 1720px; text-align: center; font-size: 28px; font-weight: 500; color: var(--muted); }
+#hud { position: fixed; left: 8px; bottom: 8px; font: 13px monospace; background: #000c; color: #fff; padding: 4px 8px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script src="data.js"></script>
+<script>
+(() => {
+const C = window.CONFIG, EV = window.EVENTS, TALLY = window.TALLY;
+if (window.EVENT_ERRORS.length) console.error("EVENT ERRORS: " + window.EVENT_ERRORS.join(" | "));
+const stage = document.getElementById("stage");
+
+// ---------- toán ----------
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, u) => a + (b - a) * u;
+const io = (u) => { u = clamp(u); return u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2; };
+const out = (u) => { u = clamp(u); return 1 - Math.pow(1 - u, 3); };
+const sine = (u) => { u = clamp(u); return -(Math.cos(Math.PI * u) - 1) / 2; };
+// lò xo dạng đóng (step response), z >= 0.72 để không nảy kiểu hoạt hình
+function spring(t, f = 2.2, z = 0.75) {
+  if (t <= 0) return 0;
+  const w = 2 * Math.PI * f, wd = w * Math.sqrt(1 - z * z);
+  return 1 - Math.exp(-z * w * t) * (Math.cos(wd * t) + (z * w / wd) * Math.sin(wd * t));
+}
+const win = (t, a, b, f = 0.3) => clamp((t - a) / f) * clamp((b - t) / f);
+const decay = (dt, tau) => dt < 0 ? 0 : Math.exp(-dt / tau);
+function hexA(hex, a) { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; }
+function mix(h1, h2, u) {
+  const a = parseInt(h1.slice(1), 16), b = parseInt(h2.slice(1), 16);
+  const c = (s) => Math.round(lerp((a >> s) & 255, (b >> s) & 255, clamp(u)));
+  return `rgb(${c(16)},${c(8)},${c(0)})`;
+}
+
+// ---------- dựng DOM ----------
+function el(tag, cls, parent = stage, html = "") { const e = document.createElement(tag); if (cls) e.className = cls; if (html) e.innerHTML = html; parent.appendChild(e); return e; }
+const NS = "http://www.w3.org/2000/svg";
+function sv(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; }
+
+const dash = el("div", "abs"); dash.style.cssText = "left:0;top:0;width:1080px;height:1920px;";
+const title = el("div", "abs", dash); title.id = "title"; title.textContent = C.title;
+
+// bộ đếm
+const CTR = C.counters.map((c, i) => {
+  const d = el("div", "abs card ctr", dash); d.style.left = (45 + i * 251) + "px";
+  el("div", "lbl", d).textContent = c.label;
+  const num = el("div", "num", d); num.textContent = "0";
+  return { ...c, d, num, plus: null };
+});
+
+// hình học
+const ROWS = [560, 742, 924, 1106], RC = 833;
+const SRC_X = [40, 300], BOT_X = [780, 1040], RT = { l: 405, r: 675, t: 618, b: 1048 };
+const wires = sv("svg", { id: "wires", width: 1080, height: 1920 }, dash);
+const dotsSvg = sv("svg", { id: "dots", width: 1080, height: 1920 }, dash);
+function curve(x0, y0, x1, y1) { const k = (x1 - x0) * 0.55; return `M${x0} ${y0} C${x0 + k} ${y0} ${x1 - k} ${y1} ${x1} ${y1}`; }
+const inY = (i) => RC + (i - 1.5) * 62, outY = (j) => RC + (j - 1.5) * 62;
+const srcPaths = C.sources.map((s, i) => sv("path", { d: curve(SRC_X[1], ROWS[i], RT.l, inY(i)), fill: "none", stroke: "#cfccc3", "stroke-width": 5, "stroke-linecap": "round" }, wires));
+const botPaths = C.bots.map((b, j) => sv("path", { d: curve(RT.r, outY(j), BOT_X[0], ROWS[j]), fill: "none", stroke: "#cfccc3", "stroke-width": 5, "stroke-linecap": "round" }, wires));
+const srcLen = srcPaths.map(p => p.getTotalLength()), botLen = botPaths.map(p => p.getTotalLength());
+const SIDX = Object.fromEntries(C.sources.map((s, i) => [s.id, i]));
+const BIDX = Object.fromEntries(C.bots.map((b, j) => [b.id, j]));
+
+const SRC = C.sources.map((s, i) => {
+  const d = el("div", "abs card node", dash); d.style.cssText += `left:${SRC_X[0]}px;width:${SRC_X[1] - SRC_X[0]}px;top:${ROWS[i] - 66}px;`;
+  el("div", "bar", d).style.background = s.color;
+  el("div", "nm", d).textContent = s.name;
+  const ct = el("div", "ct", d);
+  return { ...s, d, ct };
+});
+const router = el("div", "abs card", dash); router.id = "router";
+router.style.cssText += `left:${RT.l}px;top:${RT.t}px;width:${RT.r - RT.l}px;height:${RT.b - RT.t}px;`;
+el("div", "nm", router).textContent = C.router.name;
+el("div", "sb", router).textContent = C.router.sub;
+const rRing = el("div", "ring", router);
+const rIcon = el("div", "abs", router); rIcon.style.cssText = "left:50%;top:70px;width:64px;height:64px;margin-left:-32px;border-radius:18px;background:#15171b;";
+el("div", "abs", rIcon).style.cssText = "left:18px;top:18px;width:28px;height:28px;border-radius:50%;border:5px solid #fff;box-sizing:border-box;";
+const rStat = el("div", "abs", router); rStat.style.cssText = "left:0;right:0;top:300px;text-align:center;font-size:25px;font-weight:600;color:#6a6f77;";
+
+const BOT = C.bots.map((b, j) => {
+  const d = el("div", "abs card node bot", dash); d.style.cssText += `left:${BOT_X[0]}px;width:${BOT_X[1] - BOT_X[0]}px;top:${ROWS[j] - 66}px;`;
+  const bar = el("div", "bar", d); bar.style.background = b.color;
+  el("div", "nm", d).textContent = b.name;
+  const ct = el("div", "ct", d);
+  return { ...b, d, ct, bar };
+});
+
+// chấm
+const DOT = EV.map(e => {
+  const hl = !!e.key;
+  const g = sv("g", {}, dotsSvg);
+  const halo = sv("circle", { r: hl ? 30 : 0, fill: C.sources[SIDX[e.source]].color, opacity: 0.18 }, g);
+  const c = sv("circle", { r: hl ? 17 : 11, fill: C.sources[SIDX[e.source]].color, stroke: "#fff", "stroke-width": hl ? 5 : 3 }, g);
+  return { e, g, c, halo, hl };
+});
+// nhãn cho chấm nổi bật
+const TAG = {};
+for (const x of C.examples) {
+  const t = el("div", "abs tag", dash); t.textContent = x.label; t.style.borderColor = C.sources[SIDX[x.source]].color;
+  TAG[x.key] = t;
+}
+const skipBadge = el("div", "abs", dash); skipBadge.id = "skipBadge"; skipBadge.textContent = C.skipLog;
+
+// chú thích
+const CAPS = [...C.captions.map(c => ({ ...c })), ...C.examples.map(x => ({ from: x.focus[0] + 0.1, to: x.focus[1], lines: x.caption }))];
+CAPS.forEach(c => { c.d = el("div", "abs cap", dash); el("div", "l1", c.d).textContent = c.lines[0]; el("div", "l2", c.d).textContent = c.lines[1]; });
+
+// nhật ký: mỗi sự kiện có một dòng, sinh ra từ cùng danh sách
+const log = el("div", "abs card", dash); log.id = "log";
+el("div", "hd", log).textContent = "Nhật ký";
+const logCount = el("div", "hd2", log);
+const logWin = el("div", "win", log);
+const LOG = [...EV].sort((a, b) => a.tDone - b.tDone).map(e => {
+  const isSkip = e.route === "skip";
+  const bot = isSkip ? null : C.bots[BIDX[e.route]];
+  const d = el("div", "ln", logWin);
+  const dt = el("div", "dt", d); dt.style.background = isSkip ? C.skipColor : bot.color;
+  el("b", "", d).textContent = isSkip ? C.skipLog : bot.log;
+  el("span", "lb", d).textContent = "· " + e.label;
+  if (!isSkip) d.querySelector("b").style.color = bot.color;
+  if (e.key) d.style.background = "var(--hi)";
+  return { e, d };
+});
+
+// counters: thời điểm tăng của từng bộ đếm, đọc từ EVENTS
+const STEPS = {
+  total: EV.map(e => e.tRouter),
+  skip: EV.filter(e => e.route === "skip").map(e => e.tRouter),
+  done: EV.filter(e => e.route !== "skip").map(e => e.tBot),
+  draft: EV.filter(e => e.route === C.draftBot).map(e => e.tBot),
+};
+for (const k in STEPS) STEPS[k].sort((a, b) => a - b);
+const countAt = (arr, t) => { let n = 0; for (const x of arr) if (x <= t) n++; else break; return n; };
+const lastAt = (arr, t) => { let l = -9; for (const x of arr) if (x <= t) l = x; else break; return l; };
+// "+1" cho hai ví dụ
+const PLUS = C.examples.map(x => {
+  const e = EV.find(v => v.key === x.key);
+  const cid = x.route === "skip" ? "skip" : (x.route === C.draftBot ? "draft" : "done");
+  const ctr = CTR.find(c => c.id === cid);
+  const p = el("div", "plus", ctr.d); p.textContent = "+1"; p.style.background = x.route === "skip" ? "#6d7178" : C.bots[BIDX[x.route]].color;
+  return { x, e, ctr, p };
+});
+
+// ---------- cảnh tổng kết ----------
+const S = C.summary;
+const sum = el("div", "abs", stage); sum.id = "sum";
+const sH = el("div", "h", sum); sH.textContent = S.title;
+const sBadge = el("div", "badge", sum); sBadge.textContent = S.disclaimer;
+const sBig = el("div", "big", sum);
+const sBigL = el("div", "bigl", sum); sBigL.textContent = "sự kiện đã đi qua router";
+const sStack = el("div", "stack", sum);
+const stSkip = el("div", "", sStack), stDone = el("div", "", sStack), stDraft = el("div", "", sStack);
+stSkip.style.background = "#b9bdc3"; stDone.style.background = "#5b8def"; stDraft.style.background = C.bots[BIDX[C.draftBot]].color;
+const SC = [
+  { n: TALLY.skip, t: "bỏ qua", s: "không cần bot", c: "#6d7178" },
+  { n: TALLY.done, t: "đã xử lý", s: "giao cho bot", c: "#2f6fe0" },
+  { n: TALLY.draft, t: "bản nháp", s: `trong ${TALLY.done} đã xử lý`, c: C.bots[BIDX[C.draftBot]].color },
+].map((o, i) => {
+  const d = el("div", "abs card sc", sum); d.style.left = (60 + i * 330) + "px";
+  const n = el("div", "n", d); n.style.color = o.c;
+  el("div", "t", d).textContent = o.t; el("div", "s", d).textContent = o.s;
+  return { ...o, d, nEl: n };
+});
+const sCh = el("div", "ch", sum); sCh.textContent = S.costTitle;
+const maxCost = Math.max(...S.costs.map(c => c.value));
+const CR = S.costs.map((c, i) => {
+  const d = el("div", "abs cr", sum); d.style.top = (1134 + i * 182) + "px";
+  el("div", "l", d).textContent = c.label;
+  const v = el("div", "v", d); v.textContent = c.text; if (c.best) v.style.color = "#16a34a";
+  const tr = el("div", "track", d); const f = el("div", "fill", tr);
+  f.style.background = c.best ? "#16a34a" : (i === 0 ? "#e2574c" : "#f0a43a");
+  return { ...c, d, f };
+});
+const sFt = el("div", "ft", sum); sFt.textContent = S.footer;
+
+// ---------- seek(t): mọi thứ tính từ t ----------
+function place(node, t, t0, dx = 0, dy = 0, s0 = 1) {
+  const u = spring(t - t0, 1.9, 0.8), o = clamp((t - t0) / 0.25);
+  node.style.opacity = o;
+  node.style.transform = `translate(${dx * (1 - u)}px,${dy * (1 - u)}px) scale(${lerp(s0, 1, u)})`;
+  return u;
+}
+function pointOn(path, len, u) { const p = path.getPointAtLength(len * clamp(u)); return [p.x, p.y]; }
+
+window.seek = (t) => {
+  const tS = S.start;
+  // --- dashboard ---
+  const dashOut = io((t - tS) / 0.6);
+  dash.style.opacity = 1 - dashOut;
+  dash.style.transform = `translateY(${-70 * dashOut}px) scale(${1 - 0.03 * dashOut})`;
+
+  place(title, t, 0.05, 0, 30);
+  CTR.forEach((c, i) => place(c.d, t, 0.3 + i * 0.08, 0, 40, 0.96));
+  SRC.forEach((s, i) => place(s.d, t, 0.75 + i * 0.08, -60, 0));
+  place(router, t, 1.15, 0, 0, 0.9);
+  BOT.forEach((b, j) => place(b.d, t, 1.45 + j * 0.08, 60, 0));
+  place(log, t, 1.9, 0, 50);
+  srcPaths.forEach((p, i) => { const L = srcLen[i]; p.setAttribute("stroke-dasharray", L); p.setAttribute("stroke-dashoffset", L * (1 - io((t - 1.55 - i * 0.06) / 0.7))); });
+  botPaths.forEach((p, j) => { const L = botLen[j]; p.setAttribute("stroke-dasharray", L); p.setAttribute("stroke-dashoffset", L * (1 - io((t - 1.85 - j * 0.06) / 0.7))); });
+
+  // mức làm mờ chấm nền khi đang kể ví dụ
+  let focus = 0;
+  for (const x of C.examples) focus = Math.max(focus, win(t, x.focus[0], x.focus[1], 0.35));
+  const bgA = lerp(1, 0.28, focus);
+
+  // --- chấm ---
+  let rPulse = 0, rSkipFlash = 0;
+  const botGlow = C.bots.map(() => 0);
+  const wireHot = { s: C.sources.map(() => 0), b: C.bots.map(() => 0) };
+  for (const D of DOT) {
+    const e = D.e, si = SIDX[e.source], col = C.sources[si].color;
+    const isSkip = e.route === "skip";
+    if (t >= e.tRouter) rPulse += decay(t - e.tRouter, 0.16) * (D.hl ? 1 : 0.55);
+    if (isSkip && t >= e.tRouter) rSkipFlash = Math.max(rSkipFlash, decay(t - e.tRouter, 0.25) * (D.hl ? 1 : 0.4));
+    if (!isSkip && t >= e.tBot) { const j = BIDX[e.route]; botGlow[j] = Math.max(botGlow[j], D.hl ? win(t, e.tBot, 13.9, 0.25) : decay(t - e.tBot, 0.35)); }
+    let x = 0, y = 0, a = 0, r = 1, fill = col;
+    const ex = D.hl ? C.examples.find(v => v.key === e.key) : null;
+    if (t >= e.te && t < e.tRouter) {
+      const u = (t - e.te) / (e.tRouter - e.te);
+      [x, y] = pointOn(srcPaths[si], srcLen[si], D.hl ? io(u) : sine(u));
+      a = clamp((t - e.te) / 0.12); wireHot.s[si] = Math.max(wireHot.s[si], D.hl ? 1 : 0.5 * bgA);
+    } else if (t >= e.tRouter && isSkip) {
+      [x, y] = pointOn(srcPaths[si], srcLen[si], 1);
+      if (D.hl) { const k = io((t - e.tRouter) / 0.3); fill = mix(col, "#9aa0a8", k); a = 1 - clamp((t - ex.focus[1] + 0.3) / 0.3); r = 1; }
+      else { const k = clamp((t - e.tRouter) / 0.28); a = 1 - k; r = 1 - 0.6 * k; fill = mix(col, "#9aa0a8", k); }
+    } else if (!isSkip && t >= e.tRouter && t < e.tOut) {
+      // trong router: chấm thu nhỏ vào cổng ra
+      const u = io((t - e.tRouter) / (e.tOut - e.tRouter));
+      const [x0, y0] = pointOn(srcPaths[si], srcLen[si], 1); const j = BIDX[e.route]; const [x1, y1] = pointOn(botPaths[j], botLen[j], 0);
+      x = lerp(x0, x1, u); y = lerp(y0, y1, u); a = 1 - Math.sin(Math.PI * u) * 0.9; r = 1 - 0.4 * Math.sin(Math.PI * u);
+      fill = mix(col, C.bots[j].color, u);
+    } else if (!isSkip && t >= e.tOut && t < e.tBot + 0.25) {
+      const j = BIDX[e.route]; const u = (t - e.tOut) / (e.tBot - e.tOut);
+      [x, y] = pointOn(botPaths[j], botLen[j], D.hl ? io(u) : sine(u));
+      fill = C.bots[j].color; a = 1 - clamp((t - e.tBot) / 0.25); r = 1 - 0.5 * clamp((t - e.tBot) / 0.25);
+      if (u < 1) wireHot.b[j] = Math.max(wireHot.b[j], D.hl ? 1 : 0.5 * bgA);
+    }
+    if (!D.hl) a *= bgA;
+    D.g.setAttribute("opacity", a.toFixed(3));
+    D.g.setAttribute("transform", `translate(${x.toFixed(2)} ${y.toFixed(2)}) scale(${r.toFixed(3)})`);
+    D.c.setAttribute("fill", fill); D.halo.setAttribute("fill", fill);
+    // nhãn đi theo chấm
+    if (D.hl) {
+      const tg = TAG[e.key], w = tg.offsetWidth;
+      // nhãn đi theo chấm; quanh router thì dời lên trên router để không che chữ "Bộ điều phối"
+      let lx = clamp(x - w / 2, 30, 1050 - w), ly = y - 98;
+      const up = io((t - e.tRouter + 0.6) / 0.8) * (isSkip ? 1 : 1 - io((t - e.tOut - 0.1) / 0.6));
+      lx = lerp(lx, (RT.l + RT.r) / 2 - w / 2, up * up); ly = lerp(ly, RT.t - 150, io(Math.min(1, up * 1.8)));   // lên trước, ngang sau
+      const ta = isSkip ? win(t, e.te + 0.05, ex.focus[1], 0.3)
+                        : win(t, e.te + 0.05, e.tBot + 0.6, 0.3);   // tới bot: nhãn nhường chỗ cho ô bot sáng
+      tg.style.opacity = ta.toFixed(3);
+      tg.style.transform = `translate(${lx}px, ${ly}px)`;
+      tg.style.left = "0px"; tg.style.top = "0px";
+      if (!isSkip && t >= e.tOut) tg.style.borderColor = C.bots[BIDX[e.route]].color;
+    }
+  }
+  // dây đang có chấm chạy thì đậm lên
+  srcPaths.forEach((p, i) => p.setAttribute("stroke", mix("#cfccc3", C.sources[i].color, 0.55 * wireHot.s[i])));
+  botPaths.forEach((p, j) => p.setAttribute("stroke", mix("#cfccc3", C.bots[j].color, 0.55 * wireHot.b[j])));
+
+  // router
+  rPulse = Math.min(1, rPulse);
+  rRing.style.opacity = (0.15 + 0.6 * rPulse) * clamp((t - 1.4) / 0.3);
+  router.style.borderColor = mix("#dedcd5", "#15171b", 0.6 * rPulse);
+  const nIn = countAt(STEPS.total, t);
+  rStat.textContent = `${nIn} đã nhận`;
+  // badge "Bỏ qua" cho ví dụ 1
+  const ex1 = EV.find(e => e.key === C.examples[0].key);
+  const bU = spring(t - ex1.tRouter, 2.2, 0.78);
+  skipBadge.style.opacity = (clamp((t - ex1.tRouter) / 0.15) * (1 - clamp((t - C.examples[0].focus[1] + 0.3) / 0.3))).toFixed(3);
+  skipBadge.style.left = "0px"; skipBadge.style.top = "0px";
+  skipBadge.style.transform = `translate(${(RT.l + RT.r) / 2 - skipBadge.offsetWidth / 2}px, ${RT.t - 76 - 24 * (1 - bU)}px) scale(${lerp(0.8, 1, bU)})`;
+
+  // nguồn & bot
+  SRC.forEach((s) => { s.ct.textContent = `${EV.filter(e => e.source === s.id && e.te <= t).length} sự kiện`; });
+  BOT.forEach((b, j) => {
+    const n = STEPS.done.length ? EV.filter(e => e.route === b.id && e.tBot <= t).length : 0;
+    b.ct.textContent = n ? `${n} việc xong` : "đang chờ";
+    const g = botGlow[j];
+    b.d.style.borderColor = mix("#dedcd5", b.color, g);
+    b.d.style.background = mix("#ffffff", b.color, 0.16 * g);
+    b.d.style.boxShadow = `0 0 0 ${8 * g}px ${hexA(b.color, 0.18 * g)}, 0 10px 30px rgba(20,20,20,.05)`;
+    b.ct.style.color = g > 0.5 ? b.color : "";
+  });
+
+  // bộ đếm
+  CTR.forEach((c) => {
+    const n = countAt(STEPS[c.id], t), lt = lastAt(STEPS[c.id], t);
+    c.num.textContent = n;
+    const p = decay(t - lt, 0.12);
+    c.num.style.transform = `scale(${1 + 0.07 * p})`;
+  });
+  for (const P of PLUS) {
+    const tt = P.x.route === "skip" ? P.e.tRouter : P.e.tBot;
+    const on = win(t, tt, P.x.focus[1], 0.2), u = spring(t - tt, 2, 0.8);
+    P.p.style.opacity = on.toFixed(3);
+    P.p.style.transform = `translateY(${18 * (1 - u)}px)`;
+    const col = P.p.style.background;
+    P.ctr.d.style.borderColor = on > 0.01 ? mix("#dedcd5", P.x.route === "skip" ? "#6d7178" : C.bots[BIDX[P.x.route]].color, on) : "";
+    P.ctr.d.style.boxShadow = on > 0.01 ? `0 0 0 ${8 * on}px rgba(0,0,0,${0.06 * on})` : "";
+  }
+
+  // chú thích
+  for (const c of CAPS) {
+    const o = win(t, c.from, c.to, 0.3), u = out((t - c.from) / 0.4);
+    c.d.style.opacity = o.toFixed(3);
+    c.d.style.transform = `translateY(${20 * (1 - u)}px)`;
+  }
+
+  // nhật ký
+  const LH = 76;
+  let shown = 0;
+  for (let i = 0; i < LOG.length; i++) {
+    const { e, d } = LOG[i];
+    if (t < e.tDone) { d.style.opacity = 0; continue; }
+    shown++;
+    let p = 0;
+    for (let k = i + 1; k < LOG.length; k++) { const tk = LOG[k].e.tDone; if (tk > t) break; p += io((t - tk) / 0.22); if (p > 6) break; }
+    const app = out((t - e.tDone) / 0.25);
+    const y = p * LH - 24 * (1 - app);
+    d.style.opacity = (app * clamp(4 - p)).toFixed(3);
+    d.style.transform = `translateY(${y.toFixed(1)}px)`;
+  }
+  logCount.textContent = `${shown} dòng`;
+
+  // --- tổng kết ---
+  const s0 = tS + 0.35;
+  sum.style.opacity = clamp((t - s0) / 0.35);
+  sum.style.visibility = t >= s0 ? "visible" : "hidden";
+  place(sH, t, s0 + 0.05, 0, 40); place(sBadge, t, s0 + 0.25, 0, 20);
+  sBadge.style.transform = `translateX(-50%) ` + sBadge.style.transform;
+  place(sBig, t, s0 + 0.45, 0, 30); place(sBigL, t, s0 + 0.6, 0, 20);
+  sBig.textContent = Math.round(TALLY.total * io((t - s0 - 0.45) / 0.9));
+  place(sStack, t, s0 + 0.8, 0, 20);
+  const su = io((t - s0 - 0.95) / 0.9), W = 960;
+  stSkip.style.cssText = `left:0;width:${W * TALLY.skip / TALLY.total * su}px;background:#b9bdc3`;
+  stDone.style.cssText = `left:${W * TALLY.skip / TALLY.total * su}px;width:${W * (TALLY.done - TALLY.draft) / TALLY.total * su}px;background:#5b8def`;
+  stDraft.style.cssText = `left:${W * (TALLY.total - TALLY.draft) / TALLY.total * su}px;width:${W * TALLY.draft / TALLY.total * su}px;background:${C.bots[BIDX[C.draftBot]].color}`;
+  SC.forEach((c, i) => { place(c.d, t, s0 + 1.0 + i * 0.15, 0, 40, 0.96); c.nEl.textContent = Math.round(c.n * io((t - s0 - 1.1 - i * 0.15) / 0.8)); });
+  place(sCh, t, s0 + 1.8, 0, 30);
+  CR.forEach((c, i) => {
+    place(c.d, t, s0 + 2.0 + i * 0.2, 0, 30);
+    const u = io((t - s0 - 2.3 - i * 0.25) / 0.9);
+    c.f.style.width = (Math.max(c.value / maxCost * 100, 1.5) * u) + "%";
+  });
+  place(sFt, t, s0 + 2.9, 0, 10);
+
+  if (hud) hud.textContent = `t=${t.toFixed(2)}s  f=${Math.round(t * C.FPS)}`;
+};
+
+// ---------- xem thử: Space play/pause, ←/→ 1 khung, R chạy lại ----------
+let hud = null, T0 = 0, playing = false, cur = 0, raf = 0;
+if (!navigator.webdriver) {
+  hud = document.createElement("div"); hud.id = "hud"; document.body.appendChild(hud);
+  const loop = (now) => { if (!playing) return; cur = (now - T0) / 1000; if (cur >= C.DURATION) { cur = C.DURATION - 1e-3; playing = false; } window.seek(cur); raf = requestAnimationFrame(loop); };
+  const play = () => { playing = true; T0 = performance.now() - cur * 1000; raf = requestAnimationFrame(loop); };
+  addEventListener("keydown", (ev) => {
+    if (ev.code === "Space") { ev.preventDefault(); playing ? (playing = false) : play(); }
+    else if (ev.key === "ArrowRight") { playing = false; cur = Math.min(C.DURATION, cur + 1 / C.FPS); window.seek(cur); }
+    else if (ev.key === "ArrowLeft") { playing = false; cur = Math.max(0, cur - 1 / C.FPS); window.seek(cur); }
+    else if (ev.key === "r" || ev.key === "R") { cur = 0; play(); }
+  });
+  const q = new URLSearchParams(location.search).get("t"); if (q) cur = parseFloat(q);
+}
+// Fit vào cửa sổ khi xem thử
+if (!navigator.webdriver) { const fit = () => { const s = Math.min(innerWidth / 1080, innerHeight / 1920); stage.style.transformOrigin = "0 0"; stage.style.transform = `scale(${s})`; }; addEventListener("resize", fit); fit(); }
+
+Promise.all(["400", "500", "600", "700", "800"].map(w => document.fonts.load(`${w} 40px InterF`, "Đã soạn trả lời ệ"))).then(() => document.fonts.ready).then(() => {
+  window.seek(0); window.ready = true;
+});
+})();
+</script>
+</body>
