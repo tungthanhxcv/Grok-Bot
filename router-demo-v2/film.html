@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Router demo v2</title>
+<link rel="icon" href="data:,">
+<style>
+@font-face { font-family: "InterF"; src: url(assets/fonts/Inter-Regular.otf); font-weight: 400; }
+@font-face { font-family: "InterF"; src: url(assets/fonts/Inter-Medium.otf); font-weight: 500; }
+@font-face { font-family: "InterF"; src: url(assets/fonts/Inter-SemiBold.otf); font-weight: 600; }
+@font-face { font-family: "InterF"; src: url(assets/fonts/Inter-Bold.otf); font-weight: 700; }
+@font-face { font-family: "InterF"; src: url(assets/fonts/Inter-ExtraBold.otf); font-weight: 800; }
+@font-face { font-family: "MonoF"; src: url(assets/fonts/JetBrainsMono-Regular.ttf); font-weight: 400; }
+@font-face { font-family: "MonoF"; src: url(assets/fonts/JetBrainsMono-Medium.ttf); font-weight: 500; }
+@font-face { font-family: "MonoF"; src: url(assets/fonts/JetBrainsMono-Bold.ttf); font-weight: 700; }
+:root { --bg: #eef1f5; --ink: #15171b; --muted: #6b717b; --faint: #a3a9b2; --line: #e1e5eb; --card: #ffffff; --soft: #f3f5f8; }
+html, body { margin: 0; background: #cfd4db; }
+#stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; color: var(--ink); font-family: "InterF", sans-serif;
+  background-color: var(--bg); background-image: radial-gradient(#d5dae2 1.6px, transparent 1.7px); background-size: 28px 28px; }
+.a { position: absolute; }
+.mono { font-family: "MonoF", monospace; }
+.card { position: absolute; background: var(--card); border-radius: 34px; box-shadow: 0 1px 0 rgba(20,30,50,.04), 0 14px 40px rgba(20,30,50,.07); }
+.sub { background: var(--soft); border-radius: 24px; position: absolute; }
+/* odometer */
+.odo { font-variant-numeric: tabular-nums; display: inline-flex; line-height: 1; height: 1em; overflow: hidden; vertical-align: top; }
+.oc { display: inline-block; height: 1em; overflow: hidden; }
+.os { display: flex; flex-direction: column; }
+.os span { height: 1em; line-height: 1; text-align: center; }
+.osep { display: inline-block; }
+/* header */
+#icon { left: 48px; top: 46px; width: 136px; height: 136px; border-radius: 36px; background: linear-gradient(160deg, #3a3f48, #121418);
+  box-shadow: 0 12px 30px rgba(0,0,0,.18), inset 0 2px 0 rgba(255,255,255,.12); }
+#tagline { left: 212px; top: 54px; font-size: 25px; color: var(--muted); letter-spacing: .5px; }
+#brand { left: 208px; top: 84px; font-size: 76px; font-weight: 800; letter-spacing: -2.4px; line-height: 1; }
+#status { left: 212px; top: 186px; height: 44px; padding: 0 18px 0 16px; border-radius: 22px; background: #e2f4ec; color: #138a62;
+  font-size: 25px; font-weight: 600; display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+#status i { width: 12px; height: 12px; border-radius: 50%; background: #18a874; display: block; }
+#clock { left: 420px; top: 180px; font-size: 50px; font-weight: 700; letter-spacing: 1px; }
+#bar { left: 48px; top: 262px; width: 984px; height: 44px; }
+#barlbl0, #barlbl1 { top: 312px; font-size: 21px; color: var(--faint); }
+.ctr { top: 350px; width: 237px; height: 186px; border-radius: 30px; }
+.ctr .lb { position: absolute; left: 22px; top: 20px; font-size: 26px; font-weight: 600; color: var(--muted); }
+.ctr .nm { position: absolute; left: 22px; top: 58px; font-size: 76px; font-weight: 800; letter-spacing: -2px; }
+.ctr .sp { position: absolute; left: 22px; bottom: 20px; height: 30px; display: flex; align-items: flex-end; gap: 7px; }
+.ctr .sp i { display: block; width: 14px; border-radius: 3px; }
+.ctr .plus { position: absolute; right: 14px; top: 16px; font-size: 26px; font-weight: 800; color: #fff; padding: 4px 12px; border-radius: 18px; }
+/* flow card */
+#flow { left: 40px; top: 566px; width: 1000px; height: 612px; }
+.hdr { position: absolute; left: 30px; top: 24px; font-size: 27px; color: var(--muted); white-space: nowrap; }
+.hdr b { color: var(--ink); font-weight: 700; }
+#costHint { right: 30px; top: 28px; font-size: 21px; color: #d7652d; white-space: nowrap; }
+#spot { left: 30px; top: 22px; font-size: 27px; font-weight: 700; white-space: nowrap; display: flex; gap: 14px; align-items: center; }
+#spot span { display: inline-block; }
+.sec { top: 76px; font-size: 21px; color: var(--muted); letter-spacing: 1px; }
+.src { left: 30px; width: 252px; height: 108px; border-radius: 22px; border: 2px solid var(--line); background: #fff; box-sizing: border-box; }
+.src .sq { position: absolute; left: 20px; top: 27px; width: 14px; height: 14px; border-radius: 4px; }
+.src .nm { position: absolute; left: 44px; top: 14px; font-size: 30px; font-weight: 700; }
+.src .ct { position: absolute; right: 18px; top: 17px; font-size: 27px; color: var(--muted); }
+.src .sb { position: absolute; left: 20px; top: 60px; font-size: 23px; color: var(--muted); white-space: nowrap; }
+.bot { left: 700px; width: 270px; height: 108px; border-radius: 22px; border: 2px solid var(--line); background: #fff; box-sizing: border-box; overflow: hidden; }
+.bot .br { position: absolute; left: 0; top: 0; bottom: 0; width: 8px; }
+.bot .nm { position: absolute; left: 22px; top: 9px; font-size: 29px; font-weight: 800; letter-spacing: -.4px; }
+.bot .du { position: absolute; left: 22px; top: 48px; font-size: 21px; color: #3c424b; white-space: nowrap; }
+.bot .nv { position: absolute; left: 22px; top: 76px; font-size: 19px; color: #d24a3a; white-space: nowrap; }
+.bot .cc { position: absolute; right: 12px; top: 9px; width: 40px; height: 40px; border-radius: 50%; border: 2px solid #cfd5dd; box-sizing: border-box;
+  font-size: 22px; display: flex; align-items: center; justify-content: center; background: #fff; }
+#pill { height: 44px; padding: 0 8px 0 20px; border-radius: 22px; background: var(--soft); border: 2px solid var(--line); display: flex; align-items: center; gap: 12px;
+  font-size: 24px; font-weight: 600; white-space: nowrap; box-sizing: border-box; }
+#pill b { padding: 3px 14px; border-radius: 16px; font-weight: 700; font-size: 22px; }
+#rl1 { font-size: 23px; text-align: center; width: 380px; }
+#rl2 { font-size: 20px; text-align: center; width: 380px; color: #d7652d; white-space: nowrap; }
+/* panels */
+.pn { height: 182px; }
+.pn .tl { position: absolute; font-size: 21px; color: var(--muted); letter-spacing: 1px; }
+#dgrid i { position: absolute; width: 20px; height: 20px; border-radius: 50%; box-sizing: border-box; }
+#you .av { position: absolute; left: 24px; top: 20px; width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--ink); box-sizing: border-box;
+  font-size: 22px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+#you .t1 { position: absolute; left: 100px; top: 16px; font-size: 30px; font-weight: 800; }
+#you .t2 { position: absolute; left: 100px; top: 54px; font-size: 22px; color: #3c424b; white-space: nowrap; }
+#you .t3 { position: absolute; left: 290px; top: 22px; font-size: 21px; color: #138a62; white-space: nowrap; }
+#you .sqs i { position: absolute; top: 112px; width: 40px; height: 40px; border-radius: 10px; border: 2px solid #d3d8df; box-sizing: border-box; background: #fff; }
+/* cron vs router */
+#cmp { left: 40px; top: 1398px; width: 1000px; height: 214px; }
+#cmp .nm { position: absolute; left: 30px; font-size: 27px; font-weight: 700; white-space: nowrap; }
+#cmp .sb { position: absolute; left: 30px; font-size: 19px; color: var(--muted); }
+#cmp .st { position: absolute; left: 300px; font-size: 20px; color: var(--muted); white-space: nowrap; }
+#cmp .cs { position: absolute; right: 30px; font-size: 38px; font-weight: 800; white-space: nowrap; }
+#cmp .cs small { font-size: 20px; font-weight: 600; margin-left: 6px; color: var(--muted); }
+#saved { right: 30px; top: 20px; font-size: 21px; color: #138a62; white-space: nowrap; }
+/* log */
+#log { left: 40px; top: 1632px; width: 1000px; height: 262px; overflow: hidden; }
+#logHd { left: 30px; top: 20px; font-size: 22px; color: var(--muted); letter-spacing: 1px; white-space: nowrap; }
+#logHd2 { right: 30px; top: 21px; font-size: 20px; color: var(--faint); white-space: nowrap; }
+.ln { position: absolute; left: 14px; right: 14px; height: 46px; border-radius: 12px; }
+.ln .tm { position: absolute; left: 16px; top: 8px; font-size: 24px; color: #4a5059; }
+.ln .st { position: absolute; left: 112px; top: 7px; height: 32px; width: 118px; border-radius: 16px; font-size: 19px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; }
+.ln .sq { position: absolute; left: 248px; top: 17px; width: 12px; height: 12px; border-radius: 3px; }
+.ln .tx { position: absolute; left: 274px; top: 9px; font-size: 23px; white-space: nowrap; }
+.pr { position: absolute; left: 30px; height: 32px; font-size: 22px; white-space: nowrap; }
+.pr .no { color: var(--faint); display: inline-block; width: 46px; }
+#caret { position: absolute; width: 13px; height: 26px; background: #4f6ef7; }
+/* summary */
+#sum { left: 40px; top: 566px; width: 1000px; height: 1046px; }
+#sum .t { position: absolute; left: 36px; top: 34px; font-size: 26px; letter-spacing: .5px; }
+#sum .l { position: absolute; left: 36px; top: 76px; font-size: 23px; color: var(--muted); white-space: nowrap; }
+#sum .bd { position: absolute; right: 34px; top: 26px; font-size: 25px; font-weight: 700; color: #9a4a00; background: #ffe9d2; border: 2px solid #f3b77a;
+  padding: 6px 18px; border-radius: 26px; white-space: nowrap; }
+#costs { left: 30px; top: 130px; width: 940px; height: 590px; }
+#costs .pm { position: absolute; left: 34px; top: 30px; font-size: 21px; color: var(--muted); letter-spacing: 1px; }
+.cr { position: absolute; left: 34px; width: 872px; height: 170px; }
+.cr .n { position: absolute; left: 0; top: 0; font-size: 33px; font-weight: 700; }
+.cr .s { position: absolute; left: 0; top: 46px; font-size: 21px; color: var(--muted); }
+.cr .v { position: absolute; right: 0; top: -8px; font-size: 64px; font-weight: 800; letter-spacing: -2px; white-space: nowrap; }
+.cr .v small { font-size: 22px; font-weight: 600; letter-spacing: 0; margin-left: 6px; color: var(--muted); }
+.cr .tr { position: absolute; left: 0; right: 0; top: 96px; height: 22px; border-radius: 11px; background: #e3e7ed; overflow: hidden; }
+.cr .fl { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 11px; }
+.tile { top: 750px; width: 455px; height: 240px; }
+.tile .bg { position: absolute; left: 0; right: 0; top: 18px; text-align: center; font-size: 140px; font-weight: 800; letter-spacing: -5px; line-height: 1; }
+.tile .bg small { font-size: 32px; letter-spacing: 0; margin-left: 10px; }
+.tile .sb { position: absolute; left: 0; right: 0; top: 168px; text-align: center; font-size: 21px; color: var(--muted); white-space: pre-line; line-height: 1.4; }
+#sum .nt { position: absolute; left: 36px; top: 1006px; font-size: 19px; color: var(--faint); white-space: nowrap; }
+#hud { position: fixed; left: 8px; bottom: 8px; font: 13px monospace; background: #000c; color: #fff; padding: 4px 8px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script src="data.js"></script>
+<script>
+(() => {
+const C = window.CONFIG, EV = window.EVENTS, TALLY = window.TALLY, TM = C.time, DT = C.dots, S = C.summary;
+if (window.EVENT_ERRORS.length) console.error("EVENT ERRORS: " + window.EVENT_ERRORS.join(" | "));
+const stage = document.getElementById("stage");
+
+// ---------- toán ----------
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, u) => a + (b - a) * u;
+const io = (u) => { u = clamp(u); return u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2; };
+const out = (u) => { u = clamp(u); return 1 - Math.pow(1 - u, 3); };
+const sine = (u) => { u = clamp(u); return -(Math.cos(Math.PI * u) - 1) / 2; };
+function spring(t, f = 2.4, z = 0.78) { if (t <= 0) return 0; const w = 2 * Math.PI * f, wd = w * Math.sqrt(1 - z * z); return 1 - Math.exp(-z * w * t) * (Math.cos(wd * t) + (z * w / wd) * Math.sin(wd * t)); }
+const win = (t, a, b, f = 0.25) => clamp((t - a) / f) * clamp((b - t) / f);
+const decay = (dt, tau) => dt < 0 ? 0 : Math.exp(-dt / tau);
+const hx = (h) => { const n = parseInt(h.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; };
+const mix = (a, b, u) => { const A = hx(a), B = hx(b); u = clamp(u); return `rgb(${A.map((v, i) => Math.round(lerp(v, B[i], u))).join(",")})`; };
+const rgba = (h, a) => `rgba(${hx(h).join(",")},${a})`;
+const vnNum = (x, d = 2) => x.toFixed(d).replace(".", ",");
+
+// ---------- DOM ----------
+function el(tag, cls, parent = stage, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; parent.appendChild(e); return e; }
+function at(e, x, y) { e.style.left = x + "px"; e.style.top = y + "px"; return e; }
+const NS = "http://www.w3.org/2000/svg";
+function sv(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; }
+// đồng hồ cơ: v là số thực; dec = số chữ số thập phân hiển thị
+function odo(parent, digits, dec = 0) {
+  const w = el("span", "odo", parent), cols = [];
+  for (let k = digits - 1; k >= 0; k--) {
+    if (dec && k === dec - 1) el("span", "osep", w, ",");
+    const c = el("span", "oc", w), s = el("span", "os", c);
+    for (const d of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0]) el("span", "", s, String(d));
+    cols.push({ k, c, s });
+  }
+  return {
+    w, set(v) {
+      v = Math.max(0, v * Math.pow(10, dec));
+      for (const { k, c, s } of cols) {
+        const p = Math.pow(10, k), base = Math.floor(v / p) % 10;
+        let frac = 0;
+        if (k === 0) frac = v - Math.floor(v);
+        else { const r = v % p; if (r > p - 1) frac = r - (p - 1); }
+        s.style.transform = `translateY(${-(base + frac)}em)`;
+        c.style.display = (k > dec && v < p) ? "none" : "";   // ẩn số 0 ở đầu
+      }
+    }
+  };
+}
+
+const SIDX = Object.fromEntries(C.sources.map((s, i) => [s.id, i]));
+const BIDX = Object.fromEntries(C.bots.map((b, j) => [b.id, j]));
+const srcCol = (e) => C.sources[SIDX[e.source]].color;
+const routeCol = (r) => r === "skip" ? C.skipColor : C.bots[BIDX[r]].color;
+const D0 = TM.dayStart, D1 = TM.dayEnd;
+
+// ---------- header ----------
+const dash = el("div", "a"); dash.style.cssText = "left:0;top:0;width:1080px;height:1920px;";
+const icon = el("div", "a", dash); icon.id = "icon";
+icon.innerHTML = `<svg width="136" height="136" viewBox="0 0 136 136"><circle cx="68" cy="68" r="30" fill="none" stroke="#fff" stroke-width="10"/>
+<circle cx="68" cy="68" r="9" fill="#fff"/><path d="M68 20 v14 M68 102 v14 M20 68 h14 M102 68 h14" stroke="#fff" stroke-width="9" stroke-linecap="round"/></svg>`;
+const tagline = el("div", "a mono", dash, C.brand.tagline); tagline.id = "tagline";
+const brand = el("div", "a", dash, C.brand.name); brand.id = "brand";
+const status = el("div", "a", dash); status.id = "status"; const stDot = el("i", "", status); el("span", "", status, C.brand.status);
+const clock = el("div", "a mono", dash); clock.id = "clock";
+const barSvg = sv("svg", { id: "bar", width: 984, height: 44 }, dash); barSvg.setAttribute("class", "a"); barSvg.style.left = "48px"; barSvg.style.top = "262px";
+sv("line", { x1: 0, x2: 984, y1: 22, y2: 22, stroke: "#c6ccd4", "stroke-width": 2 }, barSvg);
+const BX = (m) => 8 + (m - 540) / (1080 - 540) * 960; // 09:00 → 18:00
+const barTicks = EV.map(e => sv("rect", { x: BX(e.simIn) - 2.5, y: 4, width: 5, height: 36, rx: 1.5, fill: srcCol(e), opacity: 0 }, barSvg));
+const barLine = sv("line", { x1: BX(D0), x2: BX(D0), y1: 22, y2: 22, stroke: "#15171b", "stroke-width": 3 }, barSvg);
+const barHead = sv("circle", { cx: BX(D0), cy: 22, r: 9, fill: "#fff", stroke: "#15171b", "stroke-width": 3.5 }, barSvg);
+at(el("div", "a mono", dash, "09:00"), 48, 312).id = "barlbl0";
+const bl1 = el("div", "a mono", dash, "18:00"); bl1.id = "barlbl1"; bl1.style.right = "48px";
+
+// bộ đếm
+const CTR = C.counters.map((c, i) => {
+  const d = el("div", "card ctr", dash); d.style.left = (45 + i * 251) + "px";
+  el("div", "lb", d, c.label);
+  const nm = el("div", "nm", d); nm.style.color = c.color; const o = odo(nm, 2);
+  const sp = el("div", "sp", d); const bars = [];
+  for (let h = 0; h < 9; h++) { const b = el("i", "", sp); b.style.background = c.color; bars.push(b); }
+  return { ...c, d, o, bars };
+});
+const PLUS = C.examples.map(x => {
+  const cid = x.route === "skip" ? "skip" : (x.route === C.draftBot ? "draft" : "done");
+  const ctr = CTR.find(c => c.id === cid);
+  const p = el("div", "plus", ctr.d, "+1"); p.style.background = ctr.color;
+  return { x, e: EV.find(v => v.key === x.key), ctr, p };
+});
+
+// ---------- flow ----------
+const flow = el("div", "card", dash); flow.id = "flow";
+const hdr = el("div", "hdr", flow); hdr.innerHTML = "<b>router trước</b> · luật hẹp · bot chỉ làm việc thật";
+const costHint = el("div", "a mono", flow, `router ${vnNum(C.cost.routerRead, 3)} · bot ${vnNum(C.cost.agentRun, 3)} USD`); costHint.id = "costHint";
+const SPOT = C.examples.map(x => {
+  const d = el("div", "a", flow); d.id = "spot"; d.removeAttribute("id"); d.style.cssText = "left:30px;top:22px;font-size:27px;font-weight:700;white-space:nowrap;display:flex;gap:12px;align-items:center;";
+  const e = EV.find(v => v.key === x.key);
+  const dot = el("span", "", d); dot.style.cssText = `width:16px;height:16px;border-radius:50%;background:${srcCol(e)}`;
+  const p = x.spot.map((s, i) => { if (i) el("span", "", d, "→").style.color = "#a3a9b2"; const sp = el("span", "", d, s); return sp; });
+  p[2].style.color = routeCol(x.route);
+  return { x, e, d, p };
+});
+at(el("div", "a mono sec", flow, "01 nguồn"), 30, 76);
+const secR = el("div", "a mono sec", flow, "02 router"); at(secR, 432, 76);
+at(el("div", "a mono sec", flow, "03 bot"), 700, 76);
+
+const ROWS = [166, 290, 414, 538];                 // tâm hàng (trong card)
+const RC = { x: 490, y: 340 }, R_OUT = 118;        // tâm vòng router (trong card)
+const wires = sv("svg", { width: 1000, height: 612 }, flow); wires.setAttribute("class", "a"); wires.style.left = "0"; wires.style.top = "0";
+const curve = (x0, y0, x1, y1) => { const k = (x1 - x0) * 0.6; return `M${x0} ${y0} C${x0 + k} ${y0} ${x1 - k} ${y1} ${x1} ${y1}`; };
+const inPt = (i) => { const a = Math.PI + (i - 1.5) * 0.36; return [RC.x + Math.cos(a) * (R_OUT + 4), RC.y - Math.sin(a) * (R_OUT + 4)]; };
+const outPt = (j) => { const a = -(j - 1.5) * 0.36; return [RC.x + Math.cos(a) * (R_OUT + 4), RC.y - Math.sin(a) * (R_OUT + 4)]; };
+const srcPaths = C.sources.map((s, i) => { const [x1, y1] = inPt(i); return sv("path", { d: curve(282, ROWS[i], x1, y1), fill: "none", stroke: "#c9cfd7", "stroke-width": 3, "stroke-dasharray": "6 8" }, wires); });
+const botPaths = C.bots.map((b, j) => { const [x0, y0] = outPt(j); return sv("path", { d: curve(x0, y0, 700, ROWS[j]), fill: "none", stroke: "#c9cfd7", "stroke-width": 3, "stroke-dasharray": "6 8" }, wires); });
+const srcLen = srcPaths.map(p => p.getTotalLength()), botLen = botPaths.map(p => p.getTotalLength());
+
+const SRC = C.sources.map((s, i) => {
+  const d = el("div", "a src", flow); d.style.top = (ROWS[i] - 54) + "px";
+  el("div", "sq", d).style.background = s.color;
+  el("div", "nm mono", d, s.name);
+  const ct = el("div", "ct mono", d), sb = el("div", "sb", d, "đang chờ");
+  return { ...s, d, ct, sb };
+});
+const BOT = C.bots.map((b, j) => {
+  const d = el("div", "a bot", flow); d.style.top = (ROWS[j] - 54) + "px";
+  el("div", "br", d).style.background = b.color;
+  el("div", "nm", d, b.name);
+  const du = el("div", "du", d, b.duty); el("div", "nv", d, b.never);
+  const cc = el("div", "cc mono", d, "0");
+  return { ...b, d, du, cc };
+});
+
+// router: vòng vạch + biểu tượng
+const ring = sv("svg", { width: 300, height: 300 }, flow); ring.setAttribute("class", "a"); ring.style.left = (RC.x - 150) + "px"; ring.style.top = (RC.y - 150) + "px";
+const NT = 72, ticks = [];
+for (let i = 0; i < NT; i++) {
+  const a = -Math.PI / 2 + i / NT * Math.PI * 2, c = Math.cos(a), s = Math.sin(a);
+  ticks.push(sv("line", { x1: 150 + c * 98, y1: 150 + s * 98, x2: 150 + c * 116, y2: 150 + s * 116, stroke: "#d9dde3", "stroke-width": 4, "stroke-linecap": "round" }, ring));
+}
+const TICKCOL = Array.from({ length: NT }, () => null);
+const tickOf = (m) => Math.min(NT - 1, Math.floor((m - D0) / (D1 - D0) * NT));
+const rDisc = sv("circle", { cx: 150, cy: 150, r: 86, fill: "#fff", stroke: "#e1e5eb", "stroke-width": 2 }, ring);
+const rGlow = sv("circle", { cx: 150, cy: 150, r: 88, fill: "none", stroke: "#15171b", "stroke-width": 0, opacity: 0 }, ring);
+const rIcon = sv("g", { transform: "translate(150 150)" }, ring);
+sv("rect", { x: -48, y: -48, width: 96, height: 96, rx: 26, fill: "#1b1e23" }, rIcon);
+sv("circle", { r: 20, fill: "none", stroke: "#fff", "stroke-width": 7 }, rIcon); sv("circle", { r: 6, fill: "#fff" }, rIcon);
+sv("path", { d: "M0 -36 v9 M0 27 v9 M-36 0 h9 M27 0 h9", stroke: "#fff", "stroke-width": 6, "stroke-linecap": "round" }, rIcon);
+const pill = el("div", "a", flow); pill.id = "pill"; el("span", "", pill, C.router.ask); const pillB = el("b", "", pill, C.router.no);
+const rl1 = el("div", "a", flow, C.router.line1); rl1.id = "rl1"; at(rl1, RC.x - 190, RC.y + 140);
+const rl2 = el("div", "a mono", flow); rl2.id = "rl2"; at(rl2, RC.x - 190, RC.y + 176);
+
+// chấm
+const dots = sv("svg", { width: 1000, height: 612 }, flow); dots.setAttribute("class", "a"); dots.style.left = "0"; dots.style.top = "0";
+const DOT = EV.map(e => {
+  const hl = !!e.key, g = sv("g", { opacity: 0 }, dots);
+  const halo = sv("circle", { r: hl ? 26 : 0, fill: srcCol(e), opacity: 0.18 }, g);
+  const c = sv("circle", { r: hl ? 13 : 8.5, fill: srcCol(e), stroke: "#fff", "stroke-width": hl ? 4 : 3 }, g);
+  return { e, g, c, halo, hl };
+});
+
+// ---------- bảng nhỏ ----------
+const pDrop = el("div", "card pn", dash); at(pDrop, 40, 1198); pDrop.style.width = "490px";
+const dgrid = el("div", "a", pDrop); dgrid.id = "dgrid"; at(dgrid, 28, 26);
+const DG = Array.from({ length: 52 }, (_, k) => { const d = el("i", "", dgrid); at(d, (k % 13) * 33, Math.floor(k / 13) * 30); return d; });
+at(el("div", "tl mono", pDrop, "bỏ qua"), 28, 142);
+const dropBig = el("div", "a", pDrop); dropBig.style.cssText = "right:28px;top:118px;font-size:46px;font-weight:800;color:#8a9099;"; const dropO = odo(dropBig, 2);
+const you = el("div", "card pn", dash); you.id = "you"; at(you, 550, 1198); you.style.width = "490px";
+el("div", "av", you, "bạn"); el("div", "t1", you, "bạn duyệt"); el("div", "t2", you, "một chạm để gửi bản nháp");
+el("div", "t3", you, "nút gửi duy nhất");
+const sqs = el("div", "sqs", you);
+const YQ = Array.from({ length: 9 }, (_, k) => { const q = el("i", "", sqs); q.style.left = (24 + k * 50) + "px"; return q; });
+
+// ---------- cron vs router ----------
+const cmp = el("div", "card", dash); cmp.id = "cmp";
+at(el("div", "a mono", cmp, "04 cron so với sự kiện · hôm nay"), 30, 20).style.cssText += "font-size:21px;color:#6b717b;letter-spacing:1px;";
+const saved = el("div", "a mono", cmp); saved.id = "saved";
+const r1n = at(el("div", "nm", cmp, "cron · mỗi 5 phút"), 30, 62); r1n.style.color = "#e8622a";
+at(el("div", "sb mono", cmp, "chạy theo hẹn giờ"), 30, 100);
+const r2n = at(el("div", "nm", cmp, "router sự kiện"), 30, 138); r2n.style.color = "#0e9f8e";
+at(el("div", "sb mono", cmp, "chạy khi có việc"), 30, 176);
+const strip = sv("svg", { width: 420, height: 150 }, cmp); strip.setAttribute("class", "a"); strip.style.left = "300px"; strip.style.top = "58px";
+const SX = (m) => (m - D0) / (1080 - D0) * 410 + 4;
+sv("line", { x1: 0, x2: 420, y1: 92, y2: 92, stroke: "#e1e5eb", "stroke-width": 2 }, strip);
+const CRON = [];
+for (let m = D0 + C.cost.cronEvery; m <= 1080; m += C.cost.cronEvery) {
+  const busy = EV.some(e => e.route !== "skip" && e.simDone > m - C.cost.cronEvery && e.simDone <= m);
+  CRON.push({ m, busy, r: sv("rect", { x: SX(m) - 1.3, y: 2, width: 2.6, height: 28, rx: 1, fill: busy ? "#e8622a" : "#c3c9d1", opacity: 0 }, strip) });
+}
+const RDOT = EV.map(e => e.route === "skip"
+  ? sv("circle", { cx: SX(e.simDone), cy: 92, r: 3, fill: "#b8bec7", opacity: 0 }, strip)
+  : sv("circle", { cx: SX(e.simDone), cy: 92, r: 8, fill: routeCol(e.route), stroke: "#fff", "stroke-width": 2, opacity: 0 }, strip));
+const st1 = at(el("div", "st mono", cmp), 300, 96), st2 = at(el("div", "st mono", cmp), 300, 172);
+const cs1 = el("div", "cs", cmp); cs1.style.top = "58px"; cs1.style.color = "#e8622a"; const c1o = odo(cs1, 3, 2); el("small", "", cs1, "USD");
+const cs2 = el("div", "cs", cmp); cs2.style.top = "134px"; cs2.style.color = "#0e9f8e"; const c2o = odo(cs2, 3, 2); el("small", "", cs2, "USD");
+
+// ---------- nhật ký ----------
+const log = el("div", "card", dash); log.id = "log";
+const logHd = el("div", "a mono", log, "nhật ký"); logHd.id = "logHd";
+const logHd2 = el("div", "a mono", log, "mỗi sự kiện một dòng"); logHd2.id = "logHd2";
+const LOGBOX = el("div", "a", log); LOGBOX.style.cssText = "left:0;top:0;width:1000px;height:262px;";
+const LOG = [...EV].sort((a, b) => a.tDone - b.tDone).map(e => {
+  const d = el("div", "ln", LOGBOX); d.style.opacity = 0;
+  const tm = el("div", "tm mono", d, fmtClock(e.simDone));
+  const skip = e.route === "skip";
+  const st = el("div", "st", d, skip ? "bỏ qua" : "đã xử lý");
+  st.style.background = skip ? "#eceef1" : "#dcf3ea"; st.style.color = skip ? "#6b717b" : "#138a62";
+  el("div", "sq", d).style.background = srcCol(e);
+  const tx = el("div", "tx mono", d);
+  if (e.key) d.style.background = "#fff4c4";
+  return { e, d, tx, text: e.log };
+});
+// lời nhắc cài đặt (cảnh tổng kết)
+const PROMPT = el("div", "a", log); PROMPT.style.cssText = "left:0;top:0;width:1000px;height:262px;opacity:0;";
+const pBar = el("div", "a", PROMPT); pBar.style.cssText = "left:30px;top:60px;width:5px;height:190px;background:#4f6ef7;border-radius:3px;";
+const PL = S.prompt.map((s, i) => {
+  const d = el("div", "pr mono", PROMPT); d.style.left = "50px"; d.style.top = (60 + i * 32) + "px";
+  el("span", "no", d, String(i + 1).padStart(2, "0")); const tx = el("span", "", d);
+  return { s, tx };
+});
+const caret = el("div", "", PROMPT); caret.id = "caret";
+el("div", "a mono", PROMPT, "›_ " + S.promptTitle).style.cssText = "left:30px;top:20px;font-size:22px;color:#6b717b;letter-spacing:.5px;white-space:nowrap;";
+el("div", "a mono", PROMPT, `văn bản thường · ${S.prompt.length} dòng`).style.cssText = "right:30px;top:21px;font-size:20px;color:#a3a9b2;";
+const PCH = S.prompt.reduce((a, s) => a + s.length, 0);
+
+// ---------- tổng kết ----------
+const sum = el("div", "card", stage); sum.id = "sum";
+el("div", "t mono", sum, S.title);
+el("div", "l mono", sum, `${fmtClock(D0)} → ${fmtClock(D1)} · ${TALLY.total} sự kiện · ${TALLY.skip} bỏ qua · ${TALLY.done} xử lý · ${TALLY.draft} nháp`);
+const sBd = el("div", "bd", sum, S.disclaimer);
+const costs = el("div", "sub", sum); costs.id = "costs";
+el("div", "pm mono", costs, S.perMonth);
+const maxV = Math.max(...S.rows.map(r => r.value));
+const CR = S.rows.map((r, i) => {
+  const d = el("div", "cr", costs); d.style.top = (84 + i * 170) + "px";
+  const n = el("div", "n", d, r.name); n.style.color = r.color;
+  el("div", "s mono", d, r.sub);
+  const v = el("div", "v", d); v.style.color = r.color; const vt = el("span", "", v); el("small", "", v, S.unit);
+  const tr = el("div", "tr", d), fl = el("div", "fl", tr); fl.style.background = r.color;
+  return { ...r, d, vt, fl };
+});
+const t1 = el("div", "sub tile", sum); t1.style.left = "30px";
+const t1b = el("div", "bg", t1, S.tile1.big); t1b.style.color = "#e8622a"; el("div", "sb mono", t1, S.tile1.sub);
+const t2 = el("div", "sub tile", sum); t2.style.left = "515px"; t2.style.background = "#e3f5ee";
+const t2b = el("div", "bg", t2); t2b.style.color = "#0e9f8e"; t2b.innerHTML = `${S.tile2.big}<small>${S.tile2.tail}</small>`;
+el("div", "sb mono", t2, S.tile2.sub);
+const sNote = el("div", "nt mono", sum, S.note);
+
+// ---------- trạng thái theo thời gian ----------
+EV.forEach(e => { e.s = {}; for (const f of ["te", "tRouter", "tOut", "tBot", "tDone"]) if (e[f] != null) e.s[f] = simAt(e[f]); });
+const passed = (e, f, t, sim) => e[f] != null && (t < TM.rewindFrom ? e[f] <= t : e.s[f] <= sim + 1e-9);
+const smooth = (e, f, t, sim, tau = 0.16) => !passed(e, f, t, sim) ? 0 : (t < TM.rewindFrom ? io((t - e[f]) / tau) : 1);
+const PRED = {
+  total: e => ["tRouter", true],
+  skip: e => ["tRouter", e.route === "skip"],
+  done: e => ["tBot", e.route !== "skip"],
+  draft: e => ["tBot", e.route === C.draftBot],
+};
+const pointOn = (path, len, u) => { const p = path.getPointAtLength(len * clamp(u)); return [p.x, p.y]; };
+function place(node, t, t0, dy = 30, base = "") { const u = spring(t - t0, 2.2, 0.8); node.style.opacity = clamp((t - t0) / 0.25); node.style.transform = `${base} translateY(${dy * (1 - u)}px)`; }
+
+window.seek = (t) => {
+  const sim = simAt(t), fwd = t < TM.rewindFrom;
+  const inRun = t < TM.sumFrom;
+  // chuyển cảnh tổng kết
+  const toSum = io((t - TM.sumFrom) / 0.4) * (1 - io((t - TM.rewindFrom) / 0.25));
+  const sumA = clamp((t - TM.sumFrom - 0.15) / 0.35) * (1 - clamp((t - TM.rewindFrom + 0.05) / 0.2));
+  for (const n of [flow, pDrop, you, cmp]) { n.style.opacity = 1 - toSum; n.style.transform = `scale(${1 - 0.02 * toSum})`; }
+  sum.style.opacity = sumA; sum.style.visibility = sumA > 0 ? "visible" : "hidden";
+  sum.style.transform = `translateY(${24 * (1 - out((t - TM.sumFrom - 0.15) / 0.5))}px)`;
+
+  // header
+  clock.textContent = fmtClock(sim);
+  stDot.style.opacity = 0.55 + 0.45 * Math.cos(2 * Math.PI * t / 1.2);
+  const bx = BX(sim);
+  barLine.setAttribute("x2", bx); barHead.setAttribute("cx", bx);
+  EV.forEach((e, i) => barTicks[i].setAttribute("opacity", (passed(e, "te", t, sim) ? (fwd ? clamp((t - e.te) / 0.15) : 1) : 0).toFixed(2)));
+
+  // bộ đếm + biểu đồ cột theo giờ
+  const vals = {};
+  for (const c of CTR) {
+    let v = 0; const hours = new Array(9).fill(0); let last = -9;
+    for (const e of EV) { const [f, ok] = PRED[c.id](e); if (!ok) continue; const s = smooth(e, f, t, sim); v += s; if (s > 0) { hours[clamp(Math.floor(e.s[f] / 60) - 9, 0, 8)] += s; if (fwd) last = Math.max(last, e[f]); } }
+    vals[c.id] = v; c.o.set(v);
+    c.o.w.style.transform = `scale(${1 + 0.06 * decay(t - last, 0.1)})`; c.o.w.style.transformOrigin = "left bottom";
+    c.bars.forEach((b, h) => { b.style.height = (4 + Math.min(26, hours[h] * (c.id === "total" ? 2.6 : c.id === "skip" ? 3.4 : 9))) + "px"; b.style.opacity = hours[h] > 0 ? 1 : 0.25; });
+  }
+  window.__vals = vals;
+  for (const P of PLUS) {
+    const tt = P.x.route === "skip" ? P.e.tRouter : P.e.tBot, on = win(t, tt, P.x.focus[1], 0.2);
+    P.p.style.opacity = on.toFixed(3); P.p.style.transform = `translateY(${14 * (1 - spring(t - tt))}px)`;
+    P.ctr.d.style.boxShadow = on > 0.01 ? `0 0 0 ${7 * on}px ${rgba(P.ctr.color === "#15171b" ? "#15171b" : P.ctr.color, 0.18 * on)}, 0 14px 40px rgba(20,30,50,.07)` : "";
+  }
+
+  // tiêu đề card / spotlight ví dụ
+  let foc = 0;
+  for (const SP of SPOT) {
+    const x = SP.x, e = SP.e, o = win(t, x.focus[0], x.focus[1], 0.25); foc = Math.max(foc, o);
+    SP.d.style.opacity = o.toFixed(3);
+    const ts = [e.te, e.tRouter, e.tDone];
+    SP.p.forEach((p, i) => { const u = clamp((t - ts[i]) / 0.2); p.style.opacity = u; if (i) p.previousSibling.style.opacity = u; p.style.transform = `translateY(${8 * (1 - out((t - ts[i]) / 0.3))}px)`; });
+  }
+  hdr.style.opacity = (1 - foc).toFixed(3); costHint.style.opacity = (1 - foc).toFixed(3);
+
+  // dây: kiến bò (chu kỳ khớp 24 s để video lặp liền)
+  const ant = -((t * 14 * 100 / 24) % 14);
+  const hot = { s: C.sources.map(() => 0), b: C.bots.map(() => 0) };
+  let rPulse = 0, lastR = null;
+  const glow = C.bots.map(() => 0);
+  for (const D of DOT) {
+    const e = D.e, si = SIDX[e.source], skip = e.route === "skip", j = skip ? -1 : BIDX[e.route];
+    const ex = D.hl ? C.examples.find(v => v.key === e.key) : null;
+    if (fwd && t >= e.tRouter) { rPulse += decay(t - e.tRouter, 0.14) * (D.hl ? 1 : 0.6); if (!lastR || e.tRouter > lastR.tRouter) lastR = e; }
+    if (!skip && passed(e, "tBot", t, sim) && fwd) glow[j] = Math.max(glow[j], D.hl ? win(t, e.tBot, ex.focus[1], 0.2) : decay(t - e.tBot, 0.4));
+    let x = 0, y = 0, a = 0, r = 1, fill = srcCol(e);
+    if (inRun && fwd) {
+      if (t >= e.te && t < e.tRouter) {
+        const u = (t - e.te) / (e.tRouter - e.te); [x, y] = pointOn(srcPaths[si], srcLen[si], D.hl ? io(u) : sine(u));
+        a = clamp((t - e.te) / 0.08); hot.s[si] = Math.max(hot.s[si], D.hl ? 1 : 0.6);
+      } else if (t >= e.tRouter && skip) {
+        [x, y] = pointOn(srcPaths[si], srcLen[si], 1);
+        const k = clamp((t - e.tRouter) / 0.2); fill = mix(srcCol(e), "#9aa0a8", k);
+        if (D.hl) a = 1 - clamp((t - ex.focus[1] + 0.3) / 0.3); else { a = 1 - k; r = 1 - 0.5 * k; }
+      } else if (!skip && t >= e.tRouter && t < e.tOut) {
+        a = 0.15;
+      } else if (!skip && t >= e.tOut && t < e.tBot + 0.2) {
+        const u = (t - e.tOut) / (e.tBot - e.tOut); [x, y] = pointOn(botPaths[j], botLen[j], D.hl ? io(u) : sine(u));
+        fill = C.bots[j].color; a = 1 - clamp((t - e.tBot) / 0.2); r = 1 - 0.4 * clamp((t - e.tBot) / 0.2);
+        if (u < 1) hot.b[j] = Math.max(hot.b[j], D.hl ? 1 : 0.6);
+      }
+      if (!D.hl) a *= lerp(1, 0.4, foc);
+    }
+    D.g.setAttribute("opacity", a.toFixed(3));
+    D.g.setAttribute("transform", `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${r.toFixed(3)})`);
+    D.c.setAttribute("fill", fill); D.halo.setAttribute("fill", fill);
+  }
+  srcPaths.forEach((p, i) => { p.setAttribute("stroke-dashoffset", ant); p.setAttribute("stroke", mix("#c9cfd7", C.sources[i].color, hot.s[i])); p.setAttribute("stroke-dasharray", hot.s[i] > 0.5 ? "6 0" : "6 8"); });
+  botPaths.forEach((p, j) => { p.setAttribute("stroke-dashoffset", ant); p.setAttribute("stroke", mix("#c9cfd7", C.bots[j].color, hot.b[j])); p.setAttribute("stroke-dasharray", hot.b[j] > 0.5 ? "6 0" : "6 8"); });
+
+  // router
+  rPulse = Math.min(1, rPulse);
+  rGlow.setAttribute("stroke-width", (2 + 8 * rPulse).toFixed(2)); rGlow.setAttribute("opacity", (0.12 + 0.5 * rPulse).toFixed(3));
+  rIcon.setAttribute("transform", `translate(150 150) scale(${1 + 0.05 * rPulse})`);
+  for (let i = 0; i < NT; i++) TICKCOL[i] = null;
+  for (const e of EV) if (passed(e, "tRouter", t, sim)) TICKCOL[tickOf(e.s.tRouter)] = routeCol(e.route) === C.skipColor ? srcCol(e) : routeCol(e.route);
+  const cur = tickOf(sim), prog = (sim - D0) / (D1 - D0);
+  ticks.forEach((k, i) => {
+    const on = i / NT <= prog && prog > 0;
+    k.setAttribute("stroke", TICKCOL[i] || (on ? "#b9c0ca" : "#e3e7ec"));
+    k.setAttribute("stroke-width", i === cur && prog > 0 && prog < 1 ? 7 : 4);
+  });
+  // "cần việc?"
+  const yes = lastR && lastR.route !== "skip" && t - lastR.tRouter < 0.5;
+  const fresh = lastR && t - lastR.tRouter < 0.5;
+  pillB.textContent = yes ? C.router.yes : C.router.no;
+  pillB.style.background = yes ? "#0e9f8e" : (fresh ? "#6b717b" : "#e1e5eb");
+  pillB.style.color = yes || fresh ? "#fff" : "#6b717b";
+  const pw = pill.offsetWidth; at(pill, RC.x - pw / 2, 110);
+  const nIn = Math.round(vals.total), nSkip = Math.round(vals.skip);
+  rl2.textContent = `${nIn ? Math.round(100 * nSkip / nIn) : 0}% bỏ qua · 0 chạy rỗng`;
+
+  // nguồn
+  SRC.forEach(s => {
+    let n = 0, lastE = null;
+    for (const e of EV) if (e.source === s.id && passed(e, "te", t, sim)) { n++; if (!lastE || e.te > lastE.te) lastE = e; }
+    s.ct.textContent = n; s.sb.textContent = lastE ? lastE.short : "đang chờ";
+    const f = fwd && lastE ? decay(t - lastE.te, 0.25) : 0;
+    s.d.style.borderColor = mix("#e1e5eb", s.color, f);
+  });
+  // bot
+  BOT.forEach((b, j) => {
+    let n = 0; for (const e of EV) if (e.route === b.id && passed(e, "tBot", t, sim)) n++;
+    b.cc.textContent = n;
+    const g = glow[j];
+    b.d.style.borderColor = mix("#e1e5eb", b.color, g);
+    b.d.style.background = mix("#ffffff", b.color, 0.1 * g);
+    b.d.style.boxShadow = `0 0 0 ${7 * g}px ${rgba(b.color, 0.16 * g)}`;
+    b.cc.style.background = g > 0.4 ? b.color : "#fff"; b.cc.style.color = g > 0.4 ? "#fff" : ""; b.cc.style.borderColor = g > 0.4 ? b.color : "";
+    b.du.textContent = g > 0.4 ? b.done : b.duty; b.du.style.color = g > 0.4 ? b.color : ""; b.du.style.fontWeight = g > 0.4 ? 700 : 400;
+  });
+
+  // bỏ qua: lưới chấm; bạn duyệt: ô nháp
+  dropO.set(vals.skip);
+  const skips = EV.filter(e => e.route === "skip");
+  DG.forEach((d, k) => {
+    const e = skips[k];
+    const u = e ? smooth(e, "tRouter", t, sim, 0.2) : 0;
+    d.style.background = u > 0 ? mix("#ffffff", "#8a9099", u) : "transparent";
+    d.style.border = `2px solid ${u > 0 ? "#8a9099" : "#d3d8df"}`;
+    d.style.transform = `scale(${1 + 0.35 * (fwd && e && t >= e.tRouter ? decay(t - e.tRouter, 0.1) : 0)})`;
+  });
+  const drafts = EV.filter(e => e.route === C.draftBot);
+  YQ.forEach((q, k) => {
+    const e = drafts[k]; const u = e ? smooth(e, "tBot", t, sim, 0.2) : 0;
+    q.style.background = u > 0 ? mix("#ffffff", "#e8702a", u) : "#fff";
+    q.style.borderColor = u > 0 ? "#e8702a" : "#d3d8df";
+    q.style.transform = `scale(${1 + 0.25 * (fwd && e && t >= e.tBot ? decay(t - e.tBot, 0.12) : 0)})`;
+  });
+
+  // cron vs router: số lần, lần rỗng, chi phí cộng dồn
+  let runs = 0, empty = 0;
+  for (const c of CRON) { const on = c.m <= sim; c.r.setAttribute("opacity", on ? 1 : 0); if (on) { runs++; if (!c.busy) empty++; } }
+  let rr = 0;
+  EV.forEach((e, i) => { const on = passed(e, "tDone", t, sim); RDOT[i].setAttribute("opacity", on ? 1 : 0); });
+  const cronCost = runs * C.cost.agentRun;
+  const routerCost = vals.total * C.cost.routerRead + vals.done * C.cost.agentRun;
+  st1.textContent = `${runs} lần · ${empty} rỗng`;
+  st2.textContent = `${Math.round(vals.done)} lần · 0 rỗng`;
+  c1o.set(cronCost); c2o.set(routerCost);
+  const sv_ = Math.max(0, cronCost - routerCost);
+  saved.textContent = `tiết kiệm hôm nay ${vnNum(sv_)} USD · −${cronCost > 0 ? Math.round(100 * sv_ / cronCost) : 0}%`;
+
+  // nhật ký
+  const logMode = 1 - toSum;
+  LOGBOX.style.opacity = logMode; logHd.style.opacity = logMode; logHd2.style.opacity = logMode;
+  const LH = 48;
+  let shown = 0;
+  for (let i = 0; i < LOG.length; i++) {
+    const L = LOG[i], e = L.e;
+    if (!passed(e, "tDone", t, sim)) { L.d.style.opacity = 0; continue; }
+    shown++;
+    let p = 0;
+    for (let k = i + 1; k < LOG.length; k++) { const ek = LOG[k].e; if (!passed(ek, "tDone", t, sim)) break; p += fwd ? io((t - ek.tDone) / 0.18) : 1; if (p > 5) break; }
+    if (p >= 4) { L.d.style.opacity = 0; continue; }
+    const app = fwd ? out((t - e.tDone) / 0.18) : 1;
+    L.d.style.opacity = (app * clamp(4 - p) * (p > 3 ? (4 - p) : 1)).toFixed(3);
+    L.d.style.top = (60 + (3 - p) * LH + 16 * (1 - app)).toFixed(1) + "px";
+    const nch = fwd ? Math.floor((t - e.tDone) * 85) : 999;
+    L.tx.textContent = L.text.slice(0, Math.max(0, nch));
+  }
+  // lời nhắc
+  PROMPT.style.opacity = toSum;
+  const pt0 = TM.sumFrom + 0.6, pt1 = TM.holdFrom - 0.2;
+  let nc = Math.floor(clamp((t - pt0) / (pt1 - pt0)) * PCH), caretAt = null;
+  PL.forEach((L, i) => {
+    const k = Math.max(0, Math.min(L.s.length, nc)); nc -= L.s.length;
+    L.tx.textContent = L.s.slice(0, k);
+    if (k < L.s.length && caretAt === null) caretAt = { i, k };
+  });
+  if (caretAt === null) caretAt = { i: PL.length - 1, k: PL[PL.length - 1].s.length };
+  at(caret, 50 + 46 + caretAt.k * 13.2 + 2, 60 + caretAt.i * 32 + 3);
+  caret.style.opacity = (t > pt1 ? (Math.cos(2 * Math.PI * t / 0.9) > 0 ? 1 : 0.15) : 1);
+
+  // tổng kết: lần lượt hiện
+  const s0 = TM.sumFrom + 0.2;
+  place(sBd, t, s0 + 0.2, 16);
+  place(costs, t, s0 + 0.25, 30);
+  CR.forEach((r, i) => {
+    place(r.d, t, s0 + 0.45 + i * 0.2, 24);
+    const u = io((t - s0 - 0.6 - i * 0.25) / 1.0);
+    r.vt.textContent = (r.text.startsWith("≈") ? "≈" : "") + Math.round(r.value * u);
+    r.fl.style.width = (Math.max(r.value / maxV * 100, 3) * u) + "%";
+  });
+  place(t1, t, s0 + 1.3, 30); place(t2, t, s0 + 1.5, 30); place(sNote, t, s0 + 1.8, 10);
+  t1b.style.transform = `scale(${lerp(0.85, 1, spring(t - s0 - 1.4))})`;
+
+  if (hud) hud.textContent = `t=${t.toFixed(3)}s  f=${Math.round(t * C.FPS)}  ${fmtClock(sim)}`;
+};
+
+// ---------- xem thử: Space, ←/→, R, ?t= ----------
+let hud = null, T0 = 0, playing = false, cur = 0;
+if (!navigator.webdriver) {
+  hud = document.createElement("div"); hud.id = "hud"; document.body.appendChild(hud);
+  const loop = (now) => { if (!playing) return; cur = ((now - T0) / 1000) % C.DURATION; window.seek(cur); requestAnimationFrame(loop); };
+  const play = () => { playing = true; T0 = performance.now() - cur * 1000; requestAnimationFrame(loop); };
+  addEventListener("keydown", (ev) => {
+    if (ev.code === "Space") { ev.preventDefault(); playing ? (playing = false) : play(); }
+    else if (ev.key === "ArrowRight") { playing = false; cur = Math.min(C.DURATION, cur + 1 / C.FPS); window.seek(cur); }
+    else if (ev.key === "ArrowLeft") { playing = false; cur = Math.max(0, cur - 1 / C.FPS); window.seek(cur); }
+    else if (ev.key === "r" || ev.key === "R") { cur = 0; play(); }
+  });
+  const q = new URLSearchParams(location.search).get("t"); if (q) cur = parseFloat(q);
+  const fit = () => { const s = Math.min(innerWidth / 1080, innerHeight / 1920); stage.style.transformOrigin = "0 0"; stage.style.transform = `scale(${s})`; };
+  addEventListener("resize", fit); fit();
+}
+const fams = [["InterF", [400, 500, 600, 700, 800]], ["MonoF", [400, 500, 700]]];
+Promise.all(fams.flatMap(([f, ws]) => ws.map(w => document.fonts.load(`${w} 40px ${f}`, "Đã soạn trả lời ệ → ≈ ›")))).then(() => document.fonts.ready).then(() => {
+  window.seek(cur || 0); window.ready = true;
+});
+})();
+</script>
+</body>

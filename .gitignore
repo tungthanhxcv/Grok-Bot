@@ -3,3 +3,9 @@ router-demo/sub/
 router-demo/sub_draft/
 router-demo/out/draft.mp4
 __pycache__/
+router-demo-v2/probe/
+router-demo-v2/sub/
+router-demo-v2/sub_draft/
+router-demo-v2/out/draft.mp4
+router-demo-v2/out/video.mp4
+router-demo-v2/out/audio_raw.wav
